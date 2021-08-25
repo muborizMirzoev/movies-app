@@ -37,7 +37,7 @@ body {
 }
 
 .movies {
-    padding-bottom: 2rem;
+    padding-bottom: 5rem;
     text-align: center;
 }
 
@@ -92,11 +92,116 @@ body {
     color: #008000FF;
 }
 
-.pagination button{
-    cursor: pointer;
-    padding: 1rem;
+/*Pagination*/
+.pagination__wrapper {
+
 }
 
-.pagination__item.active {
-    background-color: blue;
+.page-btn {
+    background: none;
+    appearance: none;
+    border: none;
+    cursor: pointer;
+
+    background: #ddd;
+    color: #2c303a;
+    height: 35px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: background 0.3s ease;
+    margin: 0 2px
+}
+
+.page-btn:first-of-type {
+    margin-left: 0;
+}
+
+.page-btn:last-of-type {
+    margin-right: 0;
+}
+
+.page-btn:not([class$="-page"]) {
+    width: 35px;
+}
+
+.pagination-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-btn[class*="-page"] {
+    padding: 10px;
+    background: #ccc;
+    font-size: 0.6em;
+    font-weight: 700;
+}
+
+.page-btn.active {
+    background: #717790;
+    color: #fff;
+}
+
+.page-btn[disabled] {
+    opacity: 0.3;
+}
+
+
+.popup__container {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001;
+    background-color: rgba(0, 0, 0, .5);
+}
+
+.popup__container.hidden {
+    display: none;
+}
+
+.popup {
+    position: relative;
+    max-height: 100vh;
+    max-width: 600px;
+    width: 100%;
+    padding: 1rem;
+    margin: 1rem;
+    overflow: auto;
+    border-radius: 5px;
+    background-color: white;
+}
+
+.popup__close {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    border: none;
+    cursor: pointer;
+    font-size: 1.6rem;
+    background-color: transparent;
+}
+
+@media only screen and (max-width: 450px) {
+
+    .page-btn[class*="-page"] {
+        padding: 6px;
+    }
+
+}
+
+@media only screen and (max-width: 330px) {
+
+    .page-btn[class*="-page"] {
+        padding: 2px;
+    }
+
+    .page-btn:not([class$="-page"]) {
+        width: 30px;
+    }
 }

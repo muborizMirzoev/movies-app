@@ -1,3 +1,5 @@
+import {PaginationButton} from './js/pagination.js';
+
 const imgUrl = 'https://image.tmdb.org/t/p/w1280';
 const apiKey = '04c35731a5ee918f014970082a0088b1';
 const apiUrl = 'https://api.themoviedb.org/3/discover/movie?';
@@ -6,13 +8,15 @@ const sortByPopularityDesc = 'popularity.desc';
 const page = 1;
 
 const moviesElWrapper = document.querySelector('.movies__wrapper');
-const paginationEl = document.querySelector('.pagination');
-const paginationItemEls = document.querySelectorAll('.pagination__item');
-const movieRatingEls = document.querySelectorAll('.movie__rating');
 const formEl = document.querySelector('.header__form');
 const formInputEl = document.querySelector('.form__input');
 
 
+const paginationButtons = new PaginationButton(500, 5);
+paginationButtons.render();
+paginationButtons.onChange(e => {
+   getMovies(sortByPopularityDesc, e.target.value)
+});
 
 getMovies(sortByPopularityDesc, page)
 async function getMovies(sort, page) {
@@ -28,7 +32,6 @@ async function getSearchMovies(search) {
 }
 
 function renderMovies(movies) {
-   console.log(movies)
    if (movies.length === 0) {
       console.log(movies.length)
       return document.querySelector('.movies').innerHTML = `<h2> no results were found for <mark>${formInputEl.value}</mark></h2>`;
@@ -56,6 +59,30 @@ function voteFormat(num) {
       return 'cool-rating'
    }
 }
+
+// function showPopup(mealData) {
+//    const ingredientsAndMeasures = [];
+//    for (let i = 1; i <= 20; i++) {
+//       if (mealData['strIngredient' + i]) {
+//          ingredientsAndMeasures.push(`${mealData['strIngredient' + i]} - ${mealData['strMeasure' + i]}`);
+//       }
+//    }
+//
+//    popup.innerHTML = `
+//   <button class="popup__close"><i class="fas fa-times-circle"></i></button>
+//   <div class="popup__header">
+//       <h3>${mealData.strMeal}</h3>
+//       <img src="${mealData.strMealThumb}" alt="test">
+//     </div>
+//     <p class="popup__info">${mealData.strInstructions}</p>
+//     <h4>Ingredients:</h4>
+//     <ul class="popup__ingredients">
+//       ${ingredientsAndMeasures.map(ing => `<li>${ing}</li>`).join(' ')}
+//     </ul>
+//     <a href="${mealData.strYoutube}" target="_blank">How to make (video) <i class="fab fa-youtube"></i></a>`;
+//    popupContainer.classList.remove('hidden');
+// }
+
 
 formEl.addEventListener('submit', (e) => {
    e.preventDefault();
