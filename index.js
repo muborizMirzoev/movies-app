@@ -47,13 +47,15 @@ async function getDetailsMovie(id) {
 function popupRender(data) {
    console.log(data)
    popupContainer.classList.remove('hidden');
-   const videoUlr = data.videos.results[0].key;
+
+   // video ulr or placeholder video
+   const videoUlr = data?.videos?.results[0]?.key || 'ScMzIvxBSi4';
 
    popup.innerHTML = `
     <button type="button" class="popup__close"><i class="fas fa-times"></i></button>
-    <div class="popup__header">
+     <div class="popup__header">
       <h2>${data.title}</h2>
-      <span class="movie__rating popup__rating normal-rating">${data.vote_average}</span>
+      <span class="movie__rating popup__rating ${voteFormat(data['vote_average'])}">${data.vote_average}</span>
     </div>
     <iframe src="https://www.youtube.com/embed/${videoUlr}" title="YouTube video player"  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     <div class="popup__body">
@@ -89,15 +91,21 @@ function popupRender(data) {
         <h2>Production companies:</h2>
         <ul class="production-company__item">
           ${data.production_companies.map(item => {
-            return `
+      let src = `https://via.placeholder.com/100`
+      if (item.logo_path) {
+         src = `https://image.tmdb.org/t/p/w200${item.logo_path}`
+      }
+      return `
             <li>
-              <img src="https://image.tmdb.org/t/p/w400${item.logo_path}" alt="${item.name}" data-companiesid="item.id">
+              <img src="${src}" alt="${item.name}" data-companiesid="item.id">
               <a href="#">${item.name}</a>
             </li>`;
-          }).join(' ')}
+   }).join(' ')}
         </ul>
       </div>
-    </div>`
+    </div>`;
+
+
 }
 
 
@@ -123,7 +131,7 @@ function renderMovies(movies) {
 moviesElWrapper.addEventListener('click', (e) => {
    if (e.target.closest('.movies__item')) {
       const id = e.target.closest('.movies__item').dataset.id;
-      getDetailsMovie(id)
+      getDetailsMovie(id);
    }
 })
 
@@ -137,31 +145,6 @@ function voteFormat(num) {
    }
 }
 
-// function showPopup(movieDetails) {
-//    const genres = [];
-//    console.log(movieDetails)
-//    const ingredientsAndMeasures = [];
-//    // for (let i = 1; i <= 20; i++) {
-//    //    if (mealData['strIngredient' + i]) {
-//    //       ingredientsAndMeasures.push(`${mealData['strIngredient' + i]} - ${mealData['strMeasure' + i]}`);
-//    //    }
-//    // }
-//
-//    //  popup.innerHTML = `
-//    // <button class="popup__close"><i class="fas fa-times-circle"></i></button>
-//    // <div class="popup__header">
-//    //     <h3>${mealData.strMeal}</h3>
-//    //     <img src="${mealData.strMealThumb}" alt="test">
-//    //   </div>
-//    //   <p class="popup__info">${mealData.strInstructions}</p>
-//    //   <h4>Ingredients:</h4>
-//    //   <ul class="popup__ingredients">
-//    //     ${ingredientsAndMeasures.map(ing => `<li>${ing}</li>`).join(' ')}
-//    //   </ul>
-//    //   <a href="${mealData.strYoutube}" target="_blank">How to make (video) <i class="fab fa-youtube"></i></a>`;
-//    //  popupContainer.classList.remove('hidden');
-// }
-
 
 formEl.addEventListener('submit', (e) => {
    e.preventDefault();
@@ -170,8 +153,7 @@ formEl.addEventListener('submit', (e) => {
 
 document.body.addEventListener('click', (e) => {
    if (e.target.closest('.popup__close') || e.target.classList.contains('popup__container')) {
-      console.log('sss')
-      popupContainer.classList.add('hidden')
+      popupContainer.classList.add('hidden');
    }
 })
 
