@@ -5,11 +5,12 @@ const apiKey = '04c35731a5ee918f014970082a0088b1';
 const apiUrl = 'https://api.themoviedb.org/3/discover/movie?';
 const searchUrl = 'https://api.themoviedb.org/3/search/movie?api_key=04c35731a5ee918f014970082a0088b1&query=';
 const sortByPopularityDesc = 'popularity.desc';
-const page = 1;
 
 const moviesElWrapper = document.querySelector('.movies__wrapper');
 const formEl = document.querySelector('.header__form');
 const formInputEl = document.querySelector('.form__input');
+const popupContainer = document.querySelector('.popup__container');
+const popup = document.querySelector('.popup');
 
 
 const paginationButtons = new PaginationButton(500, 5);
@@ -18,18 +19,87 @@ paginationButtons.onChange(e => {
    getMovies(sortByPopularityDesc, e.target.value)
 });
 
-getMovies(sortByPopularityDesc, page)
-async function getMovies(sort, page) {
+getMovies(sortByPopularityDesc)
+
+async function getMovies(sort, page = 1) {
    const resp = await fetch(`${apiUrl}api_key=${apiKey}&sort_by=${sort}&page=${page}`);
-   const data =  await resp.json();
+   const data = await resp.json();
+   console.log(data)
    renderMovies(data.results);
 }
 
 async function getSearchMovies(search) {
-   const resp = await fetch(searchUrl+search);
+   const resp = await fetch(searchUrl + search);
    const data = await resp.json();
+
    renderMovies(data.results);
+
 }
+
+
+async function getDetailsMovie(id) {
+   const resp = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=04c35731a5ee918f014970082a0088b1&append_to_response=videos,images`);
+   const data = await resp.json();
+   popupRender(data)
+}
+
+
+function popupRender(data) {
+   console.log(data)
+   popupContainer.classList.remove('hidden');
+   const videoUlr = data.videos.results[0].key;
+
+   popup.innerHTML = `
+    <button type="button" class="popup__close"><i class="fas fa-times"></i></button>
+    <div class="popup__header">
+      <h2>${data.title}</h2>
+      <span class="movie__rating popup__rating normal-rating">${data.vote_average}</span>
+    </div>
+    <iframe src="https://www.youtube.com/embed/${videoUlr}" title="YouTube video player"  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    <div class="popup__body">
+      <div class="popup__body-overview">
+        <h2>Overview:</h2>
+        <p>${data.overview}</p>
+      </div>
+      <div class="popup__body-production-countries">
+       ${data.production_countries.map(item => `<span>${item.name}</span>`).join(' ')}
+        <p><span class="runtime">${data.runtime}</span>min</p>
+      </div>
+      <ul class="popup__info">
+        <li>
+          <h2>Date:</h2>
+          <p><span>${new Date(data.release_date).getFullYear()}</span></p>
+        </li>
+        <li class="popup__info-genres">
+          <h2>Genres:</h2>
+          <p>
+            ${data.genres.map(item => `<a href="#" data-idgenres="${item.id}">${item.name}</a>`).join(' ')}
+          </p>
+        </li>
+        <li>
+          <h2>Budget:</h2>
+          <p><span>${data.budget}</span>$</p>
+        </li>
+        <li>
+          <h2>Revenue:</h2>
+          <p><span>${data.revenue}</span>$</p>
+        </li>
+      </ul>
+      <div class="production-company">
+        <h2>Production companies:</h2>
+        <ul class="production-company__item">
+          ${data.production_companies.map(item => {
+            return `
+            <li>
+              <img src="https://image.tmdb.org/t/p/w400${item.logo_path}" alt="${item.name}" data-companiesid="item.id">
+              <a href="#">${item.name}</a>
+            </li>`;
+          }).join(' ')}
+        </ul>
+      </div>
+    </div>`
+}
+
 
 function renderMovies(movies) {
    if (movies.length === 0) {
@@ -40,7 +110,7 @@ function renderMovies(movies) {
    moviesElWrapper.innerHTML = '';
    movies.forEach(movies => {
       moviesElWrapper.innerHTML += `
-        <div class="movies__item movie">
+        <div class="movies__item movie" data-id="${movies.id}">
           <img class="movie__img" src="${imgUrl}${movies['poster_path']}" alt="">
           <div class="movie__info">
             <p>${movies['title']}</p>
@@ -49,6 +119,13 @@ function renderMovies(movies) {
         </div>`;
    });
 }
+
+moviesElWrapper.addEventListener('click', (e) => {
+   if (e.target.closest('.movies__item')) {
+      const id = e.target.closest('.movies__item').dataset.id;
+      getDetailsMovie(id)
+   }
+})
 
 function voteFormat(num) {
    if (+num < 5) {
@@ -60,27 +137,29 @@ function voteFormat(num) {
    }
 }
 
-// function showPopup(mealData) {
+// function showPopup(movieDetails) {
+//    const genres = [];
+//    console.log(movieDetails)
 //    const ingredientsAndMeasures = [];
-//    for (let i = 1; i <= 20; i++) {
-//       if (mealData['strIngredient' + i]) {
-//          ingredientsAndMeasures.push(`${mealData['strIngredient' + i]} - ${mealData['strMeasure' + i]}`);
-//       }
-//    }
+//    // for (let i = 1; i <= 20; i++) {
+//    //    if (mealData['strIngredient' + i]) {
+//    //       ingredientsAndMeasures.push(`${mealData['strIngredient' + i]} - ${mealData['strMeasure' + i]}`);
+//    //    }
+//    // }
 //
-//    popup.innerHTML = `
-//   <button class="popup__close"><i class="fas fa-times-circle"></i></button>
-//   <div class="popup__header">
-//       <h3>${mealData.strMeal}</h3>
-//       <img src="${mealData.strMealThumb}" alt="test">
-//     </div>
-//     <p class="popup__info">${mealData.strInstructions}</p>
-//     <h4>Ingredients:</h4>
-//     <ul class="popup__ingredients">
-//       ${ingredientsAndMeasures.map(ing => `<li>${ing}</li>`).join(' ')}
-//     </ul>
-//     <a href="${mealData.strYoutube}" target="_blank">How to make (video) <i class="fab fa-youtube"></i></a>`;
-//    popupContainer.classList.remove('hidden');
+//    //  popup.innerHTML = `
+//    // <button class="popup__close"><i class="fas fa-times-circle"></i></button>
+//    // <div class="popup__header">
+//    //     <h3>${mealData.strMeal}</h3>
+//    //     <img src="${mealData.strMealThumb}" alt="test">
+//    //   </div>
+//    //   <p class="popup__info">${mealData.strInstructions}</p>
+//    //   <h4>Ingredients:</h4>
+//    //   <ul class="popup__ingredients">
+//    //     ${ingredientsAndMeasures.map(ing => `<li>${ing}</li>`).join(' ')}
+//    //   </ul>
+//    //   <a href="${mealData.strYoutube}" target="_blank">How to make (video) <i class="fab fa-youtube"></i></a>`;
+//    //  popupContainer.classList.remove('hidden');
 // }
 
 
@@ -89,24 +168,11 @@ formEl.addEventListener('submit', (e) => {
    getSearchMovies(formInputEl.value)
 })
 
-
-
-// paginationEl.addEventListener('click', (e) => {
-//    const target = e.target;
-//
-//    if (target.classList.contains('pagination__item')) {
-//       paginationItemEls.forEach(item => item.classList.remove('active'));
-//       target.classList.add('active');
-//    } else if (target.classList.contains('pagination__prev')) {
-//       console.log('prev')
-//    } else if (target.classList.contains('pagination__next')) {
-//       const active = paginationEl.querySelector('.active');
-//
-//       // const nextActive =
-//       console.log(active)
-//       console.log('next')
-//    }
-//
-// })
+document.body.addEventListener('click', (e) => {
+   if (e.target.closest('.popup__close') || e.target.classList.contains('popup__container')) {
+      console.log('sss')
+      popupContainer.classList.add('hidden')
+   }
+})
 
 
