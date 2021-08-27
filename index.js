@@ -5,13 +5,36 @@ const apiKey = '04c35731a5ee918f014970082a0088b1';
 const apiUrl = 'https://api.themoviedb.org/3/discover/movie?';
 const searchUrl = 'https://api.themoviedb.org/3/search/movie?api_key=04c35731a5ee918f014970082a0088b1&query=';
 const sortByPopularityDesc = 'popularity.desc';
+const genresUrl = 'https://api.themoviedb.org/3/genre/movie/list?api_key=04c35731a5ee918f014970082a0088b1';
 
 const moviesElWrapper = document.querySelector('.movies__wrapper');
 const formEl = document.querySelector('.header__form');
 const formInputEl = document.querySelector('.form__input');
 const popupContainer = document.querySelector('.popup__container');
 const popup = document.querySelector('.popup');
+const specificationsForm = document.querySelector('.specifications__form');
 
+const votesEls = document.querySelectorAll('.vote__container input');
+const yearEl = document.querySelector('#year');
+const genresContainer = document.querySelector('.specifications__form-genres');
+
+
+getMovies(sortByPopularityDesc);
+getGenres();
+
+
+specificationsForm.addEventListener('submit', (e) => {
+   e.preventDefault();
+   const genresEls = document.querySelectorAll('.genres__container input');
+   const genres = [];
+   let votes = [];
+   const year = yearEl.value;
+
+   genresEls.forEach(item => item.checked ? genres.push(item.value) : false);
+   votesEls.forEach(item => item.checked ? votes = item.value : false);
+
+   getMovieWithFilter(year, genres, votes);
+})
 
 const paginationButtons = new PaginationButton(500, 5);
 paginationButtons.render();
@@ -19,7 +42,36 @@ paginationButtons.onChange(e => {
    getMovies(sortByPopularityDesc, e.target.value)
 });
 
-getMovies(sortByPopularityDesc)
+async function getMovieWithFilter(year, genres = [], vote) {
+   let withGenres = '';
+   let voteAverageGte = '&vote_average.gte=';
+   let voteAverageLte = '&vote_average.lte=';
+   if (genres.length > 0) {
+      withGenres = '&with_genres='
+      withGenres += genres.join('%2C');
+   }
+
+   if (+vote <= 5) {
+      voteAverageGte += 5;
+      voteAverageLte += 0;
+   } else if (+vote > 5 && +vote <= 7.5) {
+      voteAverageGte += 5.1;
+      voteAverageLte += 7.5;
+   } else {
+      voteAverageGte += 7.6;
+      voteAverageLte += 10;
+   }
+
+   const resp = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&sort_by=vote_average.desc&page=1${`&year=${year}` || ''}${voteAverageGte}${voteAverageLte}${withGenres}`);
+   const data = await resp.json();
+   renderMovies(data.results)
+}
+
+async function getGenres() {
+   const resp = await fetch(genresUrl);
+   const data = await resp.json();
+   genresRender(data.genres)
+}
 
 async function getMovies(sort, page = 1) {
    const resp = await fetch(`${apiUrl}api_key=${apiKey}&sort_by=${sort}&page=${page}`);
@@ -31,9 +83,7 @@ async function getMovies(sort, page = 1) {
 async function getSearchMovies(search) {
    const resp = await fetch(searchUrl + search);
    const data = await resp.json();
-
    renderMovies(data.results);
-
 }
 
 
@@ -43,6 +93,15 @@ async function getDetailsMovie(id) {
    popupRender(data)
 }
 
+function genresRender(data) {
+   data.forEach(genres => {
+      genresContainer.innerHTML += `
+        <label class="genres__container">${genres.name}
+          <input type="checkbox" value="${genres.id}">
+          <span class="genres__checkmark"></span>
+        </label>`;
+   });
+}
 
 function popupRender(data) {
    console.log(data)
@@ -156,5 +215,7 @@ document.body.addEventListener('click', (e) => {
       popupContainer.classList.add('hidden');
    }
 })
+
+
 
 

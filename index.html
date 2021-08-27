@@ -12,12 +12,45 @@
 <body>
 
 <header class="header">
-  <a href="/">Main</a>
+  <div class="header__title">
+    <a href="#" onclick="document.location.reload()">Main</a>
+  </div>
   <form action="" class="header__form">
     <label>
       <input type="text" class="form__input" placeholder="Search">
     </label>
   </form>
+
+  <div class="header__specifications specifications">
+    <form class="specifications__form" action="">
+      <p class="specifications__item-title">Genres: </p>
+      <div class="specifications__form-genres specifications__item">
+
+      </div>
+
+      <p class="specifications__item-title">Vote Average: </p>
+      <div class="specifications__vote specifications__item">
+        <label class="vote__container"> 5
+          <input type="radio" checked="checked" name="radio" value="4">
+          <span class="vote__checkmark"></span>
+        </label>
+        <label class="vote__container">>= 7,5
+          <input type="radio" checked="checked" name="radio" value="7">
+          <span class="vote__checkmark"></span>
+        </label>
+        <label class="vote__container">< 7,5
+          <input type="radio" checked="checked" name="radio" value="8">
+          <span class="vote__checkmark"></span>
+        </label>
+      </div>
+
+      <div class="specifications__year">
+        <label for="year" class="specifications__item-title">Year: </label>
+        <input type="number" id="year" name="year" min="1920" max="2021">
+      </div>
+      <button type="submit">Subscribe</button>
+    </form>
+  </div>
 </header>
 <main class="movies">
 
