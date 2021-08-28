@@ -17,6 +17,7 @@ const specificationsForm = document.querySelector('.specifications__form');
 const votesEls = document.querySelectorAll('.vote__container input');
 const yearEl = document.querySelector('#year');
 const genresContainer = document.querySelector('.specifications__form-genres');
+const toggleFilter = document.querySelector('.specifications__filter');
 
 
 getMovies(sortByPopularityDesc);
@@ -51,9 +52,13 @@ async function getMovieWithFilter(year, genres = [], vote) {
       withGenres += genres.join('%2C');
    }
 
-   if (+vote <= 5) {
-      voteAverageGte += 5;
-      voteAverageLte += 0;
+
+   if (+vote === 0) {
+      voteAverageGte += 0;
+      voteAverageLte += 10;
+   } else if (+vote <= 5) {
+      voteAverageGte += 0;
+      voteAverageLte += 5;
    } else if (+vote > 5 && +vote <= 7.5) {
       voteAverageGte += 5.1;
       voteAverageLte += 7.5;
@@ -64,6 +69,7 @@ async function getMovieWithFilter(year, genres = [], vote) {
 
    const resp = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&sort_by=vote_average.desc&page=1${`&year=${year}` || ''}${voteAverageGte}${voteAverageLte}${withGenres}`);
    const data = await resp.json();
+   console.log('getMovieWithFilter', data.results)
    renderMovies(data.results)
 }
 
@@ -213,6 +219,16 @@ formEl.addEventListener('submit', (e) => {
 document.body.addEventListener('click', (e) => {
    if (e.target.closest('.popup__close') || e.target.classList.contains('popup__container')) {
       popupContainer.classList.add('hidden');
+   }
+   if (e.target.closest('.specifications__filter')) {
+      specificationsForm.classList.toggle('hidden');
+      if (specificationsForm.classList.contains('hidden')) {
+         toggleFilter.querySelector('.filter__icon').classList.remove('fa-chevron-down');
+         toggleFilter.querySelector('.filter__icon').classList.add('fa-chevron-up');
+      } else  {
+         toggleFilter.querySelector('.filter__icon').classList.add('fa-chevron-down');
+         toggleFilter.querySelector('.filter__icon').classList.remove('fa-chevron-up');
+      }
    }
 })
 
