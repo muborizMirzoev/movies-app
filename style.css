@@ -220,12 +220,14 @@ body {
 
 
 .movies {
+    position: relative;
     padding-bottom: 5rem;
     text-align: center;
 }
 
-.movies h2 {
-    padding-top: 2rem;
+.movies__no-results-found {
+    padding-top: 3rem;
+    display: none;
 }
 
 .movies__wrapper {

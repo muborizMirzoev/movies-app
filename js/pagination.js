@@ -92,6 +92,7 @@ export function PaginationButton(totalPages, maxPagesVisible = 10, currentPage =
    paginationButtonContainer.append(frag);
 
    this.render = (container = document.querySelector('.pagination__wrapper')) => {
+      container.innerHTML = '';
       container.append(paginationButtonContainer);
    }
 

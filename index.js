@@ -23,27 +23,12 @@ const toggleFilter = document.querySelector('.specifications__filter');
 getMovies(sortByPopularityDesc);
 getGenres();
 
+let totalPages;
+let genres = [];
+let votes = [];
+let year;
 
-specificationsForm.addEventListener('submit', (e) => {
-   e.preventDefault();
-   const genresEls = document.querySelectorAll('.genres__container input');
-   const genres = [];
-   let votes = [];
-   const year = yearEl.value;
-
-   genresEls.forEach(item => item.checked ? genres.push(item.value) : false);
-   votesEls.forEach(item => item.checked ? votes = item.value : false);
-
-   getMovieWithFilter(year, genres, votes);
-})
-
-const paginationButtons = new PaginationButton(500, 5);
-paginationButtons.render();
-paginationButtons.onChange(e => {
-   getMovies(sortByPopularityDesc, e.target.value)
-});
-
-async function getMovieWithFilter(year, genres = [], vote) {
+async function getMovieWithFilter(page = 1) {
    let withGenres = '';
    let voteAverageGte = '&vote_average.gte=';
    let voteAverageLte = '&vote_average.lte=';
@@ -52,14 +37,13 @@ async function getMovieWithFilter(year, genres = [], vote) {
       withGenres += genres.join('%2C');
    }
 
-
-   if (+vote === 0) {
+   if (+votes === 0) {
       voteAverageGte += 0;
       voteAverageLte += 10;
-   } else if (+vote <= 5) {
+   } else if (+votes <= 5) {
       voteAverageGte += 0;
       voteAverageLte += 5;
-   } else if (+vote > 5 && +vote <= 7.5) {
+   } else if (+votes > 5 && +votes <= 7.5) {
       voteAverageGte += 5.1;
       voteAverageLte += 7.5;
    } else {
@@ -67,11 +51,24 @@ async function getMovieWithFilter(year, genres = [], vote) {
       voteAverageLte += 10;
    }
 
-   const resp = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&sort_by=vote_average.desc&page=1${`&year=${year}` || ''}${voteAverageGte}${voteAverageLte}${withGenres}`);
+   const resp = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&sort_by=vote_average.desc&page=${page}${`&year=${year}` || ''}${voteAverageGte}${voteAverageLte}${withGenres}`);
    const data = await resp.json();
-   console.log('getMovieWithFilter', data.results)
+   totalPages = data.total_pages;
+
+   console.log('getMovieWithFilter', data)
    renderMovies(data.results)
 }
+
+specificationsForm.addEventListener('submit', (e) => {
+   e.preventDefault();
+   const genresEls = document.querySelectorAll('.genres__container input');
+   year = yearEl.value;
+
+   genresEls.forEach(item => item.checked ? genres.push(item.value) : false);
+   votesEls.forEach(item => item.checked ? votes = item.value : false);
+   getMovieWithFilter();
+   renderPaginationWithFilter()
+})
 
 async function getGenres() {
    const resp = await fetch(genresUrl);
@@ -82,7 +79,9 @@ async function getGenres() {
 async function getMovies(sort, page = 1) {
    const resp = await fetch(`${apiUrl}api_key=${apiKey}&sort_by=${sort}&page=${page}`);
    const data = await resp.json();
+   totalPages = data.total_pages;
    console.log(data)
+   totalPages = data.total_pages;
    renderMovies(data.results);
 }
 
@@ -97,6 +96,29 @@ async function getDetailsMovie(id) {
    const resp = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=04c35731a5ee918f014970082a0088b1&append_to_response=videos,images`);
    const data = await resp.json();
    popupRender(data)
+}
+
+
+const paginationButtons = new PaginationButton(500, 5);
+paginationButtons.render();
+paginationButtons.onChange(e => {
+   console.log('paginationButtons', totalPages)
+   getMovies(sortByPopularityDesc, e.target.value)
+});
+
+function renderPaginationWithFilter() {
+   function showPagination() {
+      const paginationButtonsWithFilters = new PaginationButton(totalPages, 5);
+      paginationButtonsWithFilters.render();
+      paginationButtonsWithFilters.onChange(e => {
+         console.log('paginationButtonsWithFilters', totalPages, e.target.value);
+         getMovieWithFilter(e.target.value)
+   })}
+   if (totalPages < 2) {
+      clearTimeout(showPagination)
+   } else {
+      setTimeout(showPagination, 1000);
+   }
 }
 
 function genresRender(data) {
@@ -169,22 +191,29 @@ function popupRender(data) {
         </ul>
       </div>
     </div>`;
-
-
 }
 
 
 function renderMovies(movies) {
    if (movies.length === 0) {
       console.log(movies.length)
-      return document.querySelector('.movies').innerHTML = `<h2> no results were found for <mark>${formInputEl.value}</mark></h2>`;
+      document.querySelector('.movies__no-results-found').innerHTML = `<h3>no results were found for <mark>${formInputEl.value}</mark></h3>`;
+      // setTimeout(() => document.querySelector('.pagination__wrapper').innerHTML = '', 1000);
+      document.querySelector('.pagination__wrapper').innerHTML = ''
+      document.querySelector('.movies__no-results-found').style.display = 'block'
    }
 
    moviesElWrapper.innerHTML = '';
    movies.forEach(movies => {
+      let src = imgUrl + movies['poster_path'];
+      if (movies['poster_path'] === null) {
+         src = './assets/images/placeholder.jpg'
+      }
+      imgUrl + movies['poster_path'] ||
+      console.log(src)
       moviesElWrapper.innerHTML += `
         <div class="movies__item movie" data-id="${movies.id}">
-          <img class="movie__img" src="${imgUrl}${movies['poster_path']}" alt="">
+          <img class="movie__img" src="${src}" alt="">
           <div class="movie__info">
             <p>${movies['title']}</p>
             <span class="movie__rating ${voteFormat(movies['vote_average'])}">${movies['vote_average']}</span>
@@ -225,7 +254,7 @@ document.body.addEventListener('click', (e) => {
       if (specificationsForm.classList.contains('hidden')) {
          toggleFilter.querySelector('.filter__icon').classList.remove('fa-chevron-down');
          toggleFilter.querySelector('.filter__icon').classList.add('fa-chevron-up');
-      } else  {
+      } else {
          toggleFilter.querySelector('.filter__icon').classList.add('fa-chevron-down');
          toggleFilter.querySelector('.filter__icon').classList.remove('fa-chevron-up');
       }
